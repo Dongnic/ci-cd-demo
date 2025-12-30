@@ -40,12 +40,12 @@ jobs:
             mkdir -p /srv/docker
             docker load < /srv/docker/djyoo-be-prod.tar.gz
 
-            docker stop ${{ secrets.CONTAINER_NAME }} || true
-            docker rm ${{ secrets.CONTAINER_NAME }} || true
+            docker stop ${{ secrets.PROD_CONTAINER_NAME }} || true
+            docker rm ${{ secrets.PROD_CONTAINER_NAME }} || true
 
             docker run -d \
-              --name ${{ secrets.CONTAINER_NAME }} \
-              -e SPRING_PROFILES_ACTIVE=${{ secrets.ENV }} \
-              -p ${{ secrets.PORT }}:8080 \
+              --name ${{ secrets.PROD_CONTAINER_NAME }} \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -p ${{ secrets.PROD_PORT }}:8080 \
               --restart unless-stopped \
               djyoo-be-prod:latest
