@@ -1,0 +1,26 @@
+services:
+  be:
+    container_name: "${IMAGE_NAME}-${DEPLOY_ENV}"
+    image: "dearsoft/${IMAGE_NAME}:${SVN_REVISION}"
+    build:
+      context: ..
+      dockerfile: devops/Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=${DEPLOY_ENV}
+    restart: unless-stopped
+    networks:
+      - app_net
+    volumes:
+      - log_volume:/usr/local/tomcat/logs
+      - data_volume:/app/data
+
+networks:
+  app_net:
+    external: true
+    name: "${DOCKER_NETWORK}"
+
+volumes:
+  log_volume:
+    name: "${IMAGE_NAME}-${DEPLOY_ENV}-logs"
+  data_volume:
+    name: "${IMAGE_NAME}-${DEPLOY_ENV}-data"
