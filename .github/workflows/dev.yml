@@ -6,9 +6,8 @@ on:
       - dev
 
 jobs:
-  deploy-dev:
+  deploy:
     runs-on: ubuntu-latest
-    environment: dev
 
     steps:
       - name: Checkout source
@@ -17,28 +16,44 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          java-version: '17'
+          distribution: 'temurin'
 
       - name: Build with Maven
         run: mvn -B clean package -DskipTests
 
       - name: Build Docker image
         run: |
-          docker build -t dearsoft/djyoo-be:dev .
+          docker build -t djyoo-be-dev:latest .
 
-      - name: Push image to server & run
+      - name: Save Docker image
+        run: |
+          docker save djyoo-be-dev:latest | gzip > djyoo-be-dev.tar.gz
+
+      - name: Copy image to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "djyoo-be-dev.tar.gz"
+          target: "/srv/docker"
+
+      - name: Deploy container on server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            docker load < /srv/docker/djyoo-be-dev.tar.gz
+
             docker stop ${{ secrets.CONTAINER_NAME }} || true
             docker rm ${{ secrets.CONTAINER_NAME }} || true
 
             docker run -d \
               --name ${{ secrets.CONTAINER_NAME }} \
-              -p ${{ secrets.PORT }}:8080 \
               -e SPRING_PROFILES_ACTIVE=${{ secrets.ENV }} \
-              dearsoft/djyoo-be:dev
+              -p ${{ secrets.PORT }}:8080 \
+              restart unless-stopped \
+              djyoo-be-dev:latest
