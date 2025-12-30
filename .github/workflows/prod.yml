@@ -15,7 +15,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f devops/Dockerfile.dev -t djyoo-be-dev:latest .
+          docker build -f devops/Dockerfile -t djyoo-be-dev:latest .
 
       - name: Save Docker image
         run: |
