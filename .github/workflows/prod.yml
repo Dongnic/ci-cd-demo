@@ -27,6 +27,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: 222
           source: "djyoo-be-prod.tar.gz"
           target: "/srv/docker"
 
@@ -36,6 +37,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: 222
           script: |
             mkdir -p /srv/docker
             docker load < /srv/docker/djyoo-be-prod.tar.gz
