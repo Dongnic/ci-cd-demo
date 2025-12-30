@@ -1,9 +1,9 @@
-name: Deploy DEV
+name: Deploy PROD
 
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   deploy:
@@ -15,11 +15,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f devops/Dockerfile.dev -t djyoo-be-dev:latest .
+          docker build -f devops/Dockerfile -t djyoo-be-prod:latest .
 
       - name: Save Docker image
         run: |
-          docker save djyoo-be-dev:latest | gzip > djyoo-be-dev.tar.gz
+          docker save djyoo-be-prod:latest | gzip > djyoo-be-prod.tar.gz
 
       - name: Copy image to server
         uses: appleboy/scp-action@v0.1.7
@@ -27,7 +27,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "djyoo-be-dev.tar.gz"
+          source: "djyoo-be-prod.tar.gz"
           target: "/srv/docker"
 
       - name: Deploy container on server
@@ -38,7 +38,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             mkdir -p /srv/docker
-            docker load < /srv/docker/djyoo-be-dev.tar.gz
+            docker load < /srv/docker/djyoo-be-prod.tar.gz
 
             docker stop ${{ secrets.CONTAINER_NAME }} || true
             docker rm ${{ secrets.CONTAINER_NAME }} || true
@@ -48,4 +48,4 @@ jobs:
               -e SPRING_PROFILES_ACTIVE=${{ secrets.ENV }} \
               -p ${{ secrets.PORT }}:8080 \
               --restart unless-stopped \
-              djyoo-be-dev:latest
+              djyoo-be-prod:latest
